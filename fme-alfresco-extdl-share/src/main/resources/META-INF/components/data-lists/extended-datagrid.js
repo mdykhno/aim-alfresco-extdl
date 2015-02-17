@@ -361,11 +361,17 @@
          for (var i = 0, ii = this.datalistColumns.length; i < ii; i++)
          {
             column = this.datalistColumns[i];
+            // HMH - Ixxus - BEGIN
+            var sortable = true;
+            if (column.disableSort) {
+               sortable = false;
+            }
+            // HMH - Ixxus - END
             columnDefinitions.push(
             {
                key: this.dataResponseFields[i],
                label: column.label,
-               sortable: true,
+               sortable: sortable,
                sortOptions:
                {
                   field: column.formsName,
