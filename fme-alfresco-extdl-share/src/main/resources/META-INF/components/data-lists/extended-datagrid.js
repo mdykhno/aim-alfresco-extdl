@@ -207,7 +207,13 @@
          // FilterForm Save button..not yet
          //this.widgets.filterFormSave = Alfresco.util.createYUIButton(this, "filterform-save", this.onFilterFormSave);
          
-         Alfresco.util.createTwister(this.id+"-filterHeader", "datalistformfilter");
+         var twisterName = "datalistformfilter";
+         if (Alfresco.util.createTwister.collapsed === undefined) {         
+         	Alfresco.util.createTwister.collapsed = twisterName;
+         } else if (Alfresco.util.createTwister.collapsed.indexOf(twisterName) === -1) {
+            Alfresco.util.createTwister.collapsed += "," + twisterName;
+         }
+         Alfresco.util.createTwister(this.id+"-filterHeader", twisterName);
       },
    	  
 	  /**
