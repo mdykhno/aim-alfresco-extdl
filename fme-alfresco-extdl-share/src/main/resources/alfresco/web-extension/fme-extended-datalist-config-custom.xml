@@ -3,6 +3,7 @@
    		<forms>
       		<dependencies>
          		<js src="/components/form/version.js" />
+                <js src="/components/hmhcms/custom-icons-names.js" />
          		<css src="/components/data-lists/datalist-versions.css" />
          		<js src="/components/data-lists/datalist-versions.js" />
          		<js src="/components/form/attachments.js" />
