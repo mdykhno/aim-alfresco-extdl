@@ -23,6 +23,9 @@
       Alfresco.component.ExtDataGrid.superclass.constructor.call(this, htmlId);
       YAHOO.Bubbling.on("afterFormRuntimeInit", this.onAfterFormRuntimeInit, this);
       YAHOO.Bubbling.on("beforeFormRuntimeInit", this.onBeforeFormRuntimeInit, this);
+      
+      this.totalRecordsUpper = null;
+      
       return this;
    };
 
@@ -164,6 +167,10 @@
                            case "discussion":
                         	   html+= scope.msg("datalist.comments.count", data.displayValue);
                         	   break;
+                        	   
+                           case "boolean":
+                               html+=  '<input type="checkbox" onclick="javascript: return false;" onkeydown="javascript: return false;"' + (data.value ? ' checked="checked">' : '>');
+                               break;
                            default:
                         	  if ($html(data.displayValue.length) > 40){
                         		  html += $html(data.displayValue.substring(0,40) + '...');
@@ -278,7 +285,7 @@
                   Alfresco.util.Ajax.jsonPost(
                   {
                      url: Alfresco.constants.PROXY_URI + "slingshot/datalists/item/node/" + new Alfresco.util.NodeRef(item.nodeRef).uri,
-                     dataObj: this._buildDataGridParams(), //get old filter?
+                     //dataObj: this._buildDataGridParams(), //get old filter?
                      successCallback:
                      {
                         fn: function DataGrid_onActionEdit_refreshSuccess(response)
@@ -363,6 +370,7 @@
             { key: "nodeRef", label: "", sortable: false, formatter: this.fnRenderCellSelected(), width: 16 }
          ];
          
+         var addedActions = false;
          var column;
          for (var i = 0, ii = this.datalistColumns.length; i < ii; i++)
          {
@@ -373,6 +381,15 @@
                sortable = false;
             }
             // HMH - Ixxus - END
+            
+            if ("actions" == column.name) {
+            	// Add actions as last column
+                columnDefinitions.push(
+                   { key: "actions", label: this.msg("label.column.actions"), sortable: false, formatter: this.fnRenderCellActions(), width: 80 }
+                );
+                addedActions = true;
+                continue;
+            }
             columnDefinitions.push(
             {
                key: this.dataResponseFields[i],
@@ -387,11 +404,12 @@
             });
          }
 
-         // Add actions as last column
-         columnDefinitions.push(
-            { key: "actions", label: this.msg("label.column.actions"), sortable: false, formatter: this.fnRenderCellActions(), width: 80 }
-         );
-
+         if (!addedActions) {
+	         // Add actions as last column
+	         columnDefinitions.push(
+	            { key: "actions", label: this.msg("label.column.actions"), sortable: false, formatter: this.fnRenderCellActions(), width: 80 }
+	         );
+         }
          // DataTable definition
          var me = this;
          this.widgets.dataTable = new YAHOO.widget.DataTable(this.id + "-grid", columnDefinitions, this.widgets.dataSource,
@@ -479,6 +497,29 @@
                this.afterDataGridUpdate[i].call(this);
             }
             this.afterDataGridUpdate = [];
+            
+         // Update the paginator if it's been created
+            if (this.widgets.paginator)
+            {
+               Alfresco.logger.debug("Setting paginator state: page=" + this.currentPage + ", totalRecords=" + this.totalRecords);
+
+               this.widgets.paginator.setState(
+               {
+                  page: this.currentPage,
+                  totalRecords: this.totalRecords
+               });
+
+               if (this.totalRecordsUpper)
+               {
+                  this.widgets.paginator.set("pageReportTemplate", this.msg("pagination.template.page-report.more"));
+               }
+               else
+               {
+                  this.widgets.paginator.set("pageReportTemplate", this.msg("pagination.template.page-report"));
+               }
+
+               this.widgets.paginator.render();
+            }
          }, this, true);
 
          // Enable row highlighting
@@ -777,6 +818,7 @@
            fields: this.dataRequestFields,
            page : this.currentPage,
            size : this.options.pageSize,
+           total : this.totalRecords,
            noCache : new Date().getTime() 
         };
         
@@ -841,7 +883,8 @@
               metaFields:
               {
                  paginationRecordOffset: "startIndex",
-                 totalRecords: "totalRecords"
+                 totalRecords: "totalRecords",
+                 totalRecordsUpper: "totalRecordsUpper"
               }
            }
         });
@@ -1035,8 +1078,13 @@
      onDataGridSort: function DataGrid_onDataGridSort(e, dataGrid)
      {
     	YAHOO.util.Event.stopEvent(e.event);
-    	var sortField = dataGrid.widgets.dataTable.getColumn(e.target.cellIndex).key;
+    	var column = dataGrid.widgets.dataTable.getColumn(e.target.cellIndex);
+    	if (!column.sortable) {
+    		this._removeSortingClasses();
+    		return; // not sortable
+    	}
     	
+    	var sortField = column.key;
     	if (dataGrid.sortColumn && dataGrid.sortColumn === sortField) {
     		dataGrid.sortAsc = (dataGrid.sortAsc) ? false : true;
     	} else {
@@ -1055,15 +1103,10 @@
    		
      },
      
-
-     _addSortingClasses : function ExtDataGrid_addSortingClasses(elm) {
-		if (this.sortAsc) {
-			var addClass = YAHOO.widget.DataTable.CLASS_ASC;
-			var removeClass = YAHOO.widget.DataTable.CLASS_DESC;
-		} else {
-			var addClass = YAHOO.widget.DataTable.CLASS_DESC;
-			var removeClass = YAHOO.widget.DataTable.CLASS_ASC;
-		}
+     _removeSortingClasses : function ExtDataGrid_removeSortingClasses() {
+		var addClass = YAHOO.widget.DataTable.CLASS_DESC;
+		var removeClass = YAHOO.widget.DataTable.CLASS_ASC;
+		
 		var headers = this.widgets.dataTable.getColumnSet().flat;
 		for (var i = 0; headers.length > i; i++) {
 			var header = headers[i].getThEl();
@@ -1071,6 +1114,16 @@
 				Dom.removeClass(header, addClass);
 			if (Dom.hasClass(header, removeClass))
 				Dom.removeClass(header, removeClass);
+		}
+	}, 
+     _addSortingClasses : function ExtDataGrid_addSortingClasses(elm) {
+    	this._removeSortingClasses();
+		if (this.sortAsc) {
+			var addClass = YAHOO.widget.DataTable.CLASS_ASC;
+			var removeClass = YAHOO.widget.DataTable.CLASS_DESC;
+		} else {
+			var addClass = YAHOO.widget.DataTable.CLASS_DESC;
+			var removeClass = YAHOO.widget.DataTable.CLASS_ASC;
 		}
 		Dom.addClass(elm, addClass);
 		if (Dom.hasClass(elm, removeClass))

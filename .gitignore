@@ -3,6 +3,6 @@
 target
 *.iml
 *.sh
-.project
 .settings
 .classpath
+.project

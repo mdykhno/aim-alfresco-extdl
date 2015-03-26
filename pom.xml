@@ -31,10 +31,16 @@
                 <picUrl></picUrl >
             </properties-->
     </developer>
+    <developer>
+      <id>tass01024</id>
+      <name>Rasmus Melgaard</name>
+      <email>rm@novem-it.dk</email>
+      <url>http://www.novem-it.dk</url>
+      <timezone>+1</timezone>
+    </developer>
   </developers>
   <scm>
-    <connection>
-    scm:git:git@github.com:IXIPP/fme-alfresco-extdl.git</connection>
+    <connection>scm:git:git@github.com:IXIPP/fme-alfresco-extdl.git</connection>
     <developerConnection>scm:git:git@github.com:IXIPP/fme-alfresco-extdl.git</developerConnection>
     <url>https://github.com/IXIPP/fme-alfresco-extdl</url>
     <tag>HEAD</tag>
@@ -58,7 +64,7 @@
     <module>fme-alfresco-extdl-share</module>
   </modules>
   <properties>
-    <alfresco.version>4.2.e</alfresco.version>
+    <alfresco.version>4.2.f</alfresco.version><!-- works with 5.0.c also with version set to 4.2.f -->
     <spring.version>3.0.6.RELEASE</spring.version>
     <spring.surf.version>1.2.0-SNAPSHOT</spring.surf.version>
     <maven.compiler.source>1.6</maven.compiler.source>

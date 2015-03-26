@@ -4,6 +4,8 @@
 /* Note: the evaluator.lib.js customisation resides in the hmhcms project hmhcms-core-alfresco module */
 
 const REQUEST_MAX = 2000;
+const userPagedSearch = true;
+const allFilterUseSearch = true; //this works faster for larger lists
 
 /**
  * Copyright (C) 2005-2010 Alfresco Software Limited.
@@ -37,21 +39,21 @@ function escape(value) {
 	*/
 }
 
-function filterRange(array, range) {
-	logger.log("Applying " + range.prop + " range filter " + range.min + " <= x <= " + range.max);
-	var filtered = [];
-	for (var i=0; i<array.length; i++) {
-		obj = array[i];
-		logger.log(obj.properties[range.prop]);
-		var minOk = !range.min || (obj.properties[range.prop] && (range.min.getTime() <= obj.properties[range.prop].getTime()));
-		var maxOk = !range.max || (obj.properties[range.prop] && (obj.properties[range.prop].getTime() <= range.max.getTime()));
-		if (minOk && maxOk) {
-			filtered.push(obj);
-		}
-	}
-	
-	return filtered;
-}
+//function filterRange(array, range) {
+//	logger.log("Applying " + range.prop + " range filter " + range.min + " <= x <= " + range.max);
+//	var filtered = [];
+//	for (var i=0; i<array.length; i++) {
+//		obj = array[i];
+//		logger.log(obj.properties[range.prop]);
+//		var minOk = !range.min || (obj.properties[range.prop] && (range.min.getTime() <= obj.properties[range.prop].getTime()));
+//		var maxOk = !range.max || (obj.properties[range.prop] && (obj.properties[range.prop].getTime() <= range.max.getTime()));
+//		if (minOk && maxOk) {
+//			filtered.push(obj);
+//		}
+//	}
+//	
+//	return filtered;
+//}
 
 //function xPathFilterQuery(filterData) {
 //	var rangeFilters = [];
@@ -131,12 +133,13 @@ function getData()
       allNodes = [], node,
       items = [],
       totalItems,
-      startIndex = 0,
-      requestTotalCountMax = 0,
-      paged=false;
+      requestTotalCountMax = 0;
    
    var 	skip = 0,
-   		size = 0;
+   		size = 100,
+   		total = 0,
+   		page = 1,
+   		countTotal;
    
    
    if (json.has("size"))
@@ -145,43 +148,59 @@ function getData()
 	   
       if (json.has("page"))
       {
-         skip = (json.get("page") - 1) * size;
+    	  page = json.get("page");
+          skip = (page - 1) * size;
       }
-   } 
-  requestTotalCountMax = skip + REQUEST_MAX; 
-  
-  var filterJson = json.get("filter");
-  
-  if (filterJson.has("sortField")) {
-	  var sortField = filterJson.get("sortField").replace("assoc_","").replace("prop_","").replace("_",":");
-  } else {
-	  var sortField = "cm:name";
-  }
-  if (filterJson.has("sortAsc")) {
-	  var sortAsc = filterJson.get("sortAsc");
-  } else {
-	  var sortAsc = true;
-  }
+   }
+   
+   requestTotalCountMax = skip + REQUEST_MAX;
+   
+   if (json.has("total"))
+   {
+	   total = json.get("total");
+	  
+	   if (0 < total  && total < REQUEST_MAX) {
+		   requestTotalCountMax = total + 10; // add for growth
+	   } // else we do not know use absolute max: requestTotalCountMax
+   }
+   var sortAsc = true;
+   var sortField = "cm:name";
+
+   if (json.has("filter")) {
+	   var filterJson = json.get("filter");
+	  
+	   if (filterJson.has("sortField")) {
+		  var sortField = filterJson.get("sortField").replace("assoc_","").replace("prop_","").replace("_",":");
+	   } 
+	   if (filterJson.has("sortAsc")) {
+		  var sortAsc = filterJson.get("sortAsc");
+	   } 
+   }
   
    var parentNode = parsedArgs.listNode;
-   if (filter == null || filter.filterId == "" || filter.filterId == "all")
-   {
+   if (null != parentNode) {
+	   countTotal = parentNode.properties["cm:counter"];
+	   if (null !== countTotal && 0 < countTotal) {
+		   requestTotalCountMax = size;
+	   }
+   }
+   
 
-      
+   
+   if (!allFilterUseSearch && (parentNode != null) && (filter == null || filter.filterId == "" || filter.filterId == "all"))
+   {
 	  // Use non-query method
-      if (parentNode != null)
-      {
+//      if (parentNode != null)
+//      {
 
          var pagedResult = parentNode.childFileFolders(true, false, Filters.IGNORED_TYPES, skip, size, requestTotalCountMax, sortField, sortAsc, null);
          allNodes = pagedResult.page;
          totalItems = pagedResult.totalResultCountUpper;
-      }
-      
-      startIndex = skip;
-      paged = true;
+//      }
    }
    else    
    {
+
 	 /* this creates a bug for the items filters in the datalist.
 	  * 
 	  // XPath for solr systems
@@ -201,51 +220,73 @@ function getData()
       // Query the nodes - passing in default sort and result limit parameters
       if (query !== "")
       {
-    	  var sortObj = [
-    		                 {
+    	   var queryTotal = pagedSearch.countQuery(null, query, filterParams.language).totalResultCountUpper;
+    	  
+    	  var sortObj = [{
     		                     column: "@" + sortField,
     		                     ascending: sortAsc
     		                  }];
-//this is just cm:name sorting    		  var sortObj = filterParams.sort;
-         allNodes = search.query(
-         {
-            query: query,
-            language: filterParams.language,
- /* we need to get all and slice, no paging results, doh!
-page:
-{
-	skipCount: skip,
-	maxItems: size //maxItems: (filterParams.limitResults ? Math.min(parseInt(filterParams.limitResults, 10), size) : size)
-}, */
-            
-/*if you get exception on custom text property sorting, you need indexing in your model set to
- * <index enabled="true">
-      <atomic>false</atomic>
-      <stored>false</stored> 
-      <tokenised>both</tokenised>
-   </index>
-  */
-            sort: sortObj,
-            templates: filterParams.templates,
-            namespace: (filterParams.namespace ? filterParams.namespace : null)
-         });
-         paged = true;
+//this is just cm:name sorting - var sortObj = filterParams.sort;
+    	  
+    	  var queryObj = {
+    	            query: query,
+    	            language: filterParams.language,
+    	 /* we need to get all and slice, no paging results, doh! */
+    				page:
+    				{
+    					skipCount: skip,
+    					pageSize: size, 
+    					maxItems: requestTotalCountMax
+    				},
+    	            
+    	/*if you get exception on custom text property sorting, you need indexing in your model set to
+    	 * <index enabled="true">
+    	      <atomic>false</atomic>
+    	      <stored>false</stored> 
+    	      <tokenised>both</tokenised>
+    	   </index>
+    	   
+    	   for numerical properties you need
+    	     <index enabled="true">
+    	      <atomic>false</atomic>
+    	      <stored>false</stored> 
+    	      <tokenised>true</tokenised>
+    	   </index>
+    	  */
+    	            sort: sortObj,
+    	            templates: filterParams.templates,
+    	            namespace: (filterParams.namespace ? filterParams.namespace : null)
+    	         };
+    	  if (userPagedSearch) {
+    		  pagedResult = pagedSearch.pagedQuery(queryObj);
+    	  } 
+    	  else 
+    	  {
+    		  allNodes = search.query(queryObj);
+    	  }
+       
       }
-      
-	  totalItems = allNodes.length;
-	  allNodes = allNodes.slice(skip, skip + size);
+      if (pagedResult) {
+	      allNodes = pagedResult.page;
+	      totalItems = pagedResult.totalResultCountUpper;
+		  //allNodes = allNodes.slice(0, size);
+      }
+      else 
+	  {
+    	  totalItems = skip + allNodes.length;
+		  allNodes = allNodes.slice(0, size);
+	  }
    }
    
    var paging = {
-		   totalRecords: totalItems,
-		   startIndex: startIndex,
+		   totalRecords: (0 < countTotal ? (0 < queryTotal ? queryTotal : countTotal) : totalItems),
+		   startIndex: skip,
+   }
+
+   if (paging.totalRecords == (skip + REQUEST_MAX)) {
+	   paging.totalRecordsUpper = true;
    }
    
-   if (paged && (totalItems == requestTotalCountMax))
-   {
-      paging.totalRecordsUpper = requestTotalCountMax;
-   } 
-
    if (allNodes.length > 0)
    {
       for each (node in allNodes)
