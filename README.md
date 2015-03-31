@@ -1,20 +1,25 @@
 Datalist Extensions for Alfresco Share (for Alfresco 5.0.x)
 ===========================================================
 
-NB this branch contains Ixxus edits
-This branch has been modified for use at the HMH CMS project and discards several commits from master.
-This project is the Alfresco 4.2.x port of fme's datalist extensions.  I switched to github and maven because I personally don't like svn and ant. For now, the documentation remains at [google](http://code.google.com/p/fme-alfresco-extensions/wiki/DatalistExtension).
+&lt;Ixxus&gt;
 
-Alfresco 5 is now the primary target. The master branch may still work with 4.2.x.
+NB this branch has been modified by Ixxus for use at the HMH CMS project.
 
 Alfresco version:
-Alfresco Enterprise 4.2.3.3
+Alfresco Enterprise 5.0.0.5
 
 Project information:
 https://ixxuswiki.atlassian.net/wiki/display/HMH
 
 Related task:
 https://ixxuswiki.atlassian.net/wiki/display/HMH/HMHMVP-132+-+prevent+users+from+changing+HMSI+Standards+data
+
+&lt;/Ixxus&gt;
+
+
+This project is the Alfresco 4.2.x port of fme's datalist extensions.  I switched to github and maven because I personally don't like svn and ant. For now, the documentation remains at [google](http://code.google.com/p/fme-alfresco-extensions/wiki/DatalistExtension).
+
+Alfresco 5 is now the primary target. The master branch may still work with 4.2.x.
 
 ===========================================================
 
