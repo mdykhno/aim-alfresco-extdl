@@ -7,7 +7,9 @@
 	<#if formUI == "true">
 	   <@formLib.renderFormsRuntime formId=formId />
 	</#if>
-   
+   <div id="${id}-dialog">
+   <div id="${id}-dialogTitle" class="hd">${msg("title")}</div>
+   <div class="bd">
    <div id="${formId}-container" class="form-container columns-form-container">
       <#if form.showCaption?exists && form.showCaption>
          <div id="${formId}-caption" class="caption"><span class="mandatory-indicator">*</span>${msg("form.required.fields")}</div>
@@ -27,14 +29,14 @@
                		<div class="yui-u">
                </#if>
                 <@renderSetWithLabel set=item />
-               	</div> 
+               	</div>
             <#else>
                <@formLib.renderField field=form.fields[item.id] />
             </#if>
         </#list>
         </div>
       </div>
-            
+
       <#if form.mode != "view">
          <div class="bdft">
            <input id="${formId}-submit" type="submit" value="${msg("form.button.submit.label")}" />
@@ -42,6 +44,8 @@
          </div>
          </form>
       </#if>
+   </div>
+   </div>
    </div>
 </#if>
 
@@ -58,7 +62,7 @@
          <div class="set-whitespace"></div>
       </#if>
    </#if>
-   
+
    <#list set.children as item>
       <#if item.kind == "set">
          <@renderSetWithLabel set=item />
@@ -66,7 +70,7 @@
          <@formLib.renderField field=form.fields[item.id] />
       </#if>
    </#list>
-   
+
    <#if set.appearance?exists>
       <#if set.appearance == "fieldset">
          </fieldset>
