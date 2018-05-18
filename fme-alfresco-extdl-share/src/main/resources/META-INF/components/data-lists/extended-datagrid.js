@@ -559,8 +559,7 @@
       onFilterFormTemplateLoaded: function ExtDataGrid_onFilterFormTemplateLoaded(response)
       {
     	  this.filterFormResponse = response;
-    	  this._createFilterForm();
-           
+
       },
       
       _createFilterForm: function ExtDataGrid_createFilterForm() {

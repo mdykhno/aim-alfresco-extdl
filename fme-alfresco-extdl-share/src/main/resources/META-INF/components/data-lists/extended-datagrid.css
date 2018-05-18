@@ -19,3 +19,7 @@
 .datagrid .datagrid-bar .paginator {
     width: 65%;
 }
+
+.form-container .form-fields .alf-gb .alf-u input[type="text"] {
+    width: 6em;
+}

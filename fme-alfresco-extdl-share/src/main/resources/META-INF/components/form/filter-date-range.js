@@ -121,17 +121,17 @@
         	 Alfresco.util.useAsButton(Dom.getElementsByClassName("datepicker-icon", "img", this.id + "-icon-to")[0], this._showPickerTo, null, this);
          }
 
-         // setup events
-         this.widgets.calendarFrom.selectEvent.subscribe(this._handlePickerChangeFrom, this, true);
-         Event.addListener(this.id + "-date-from", "keyup", this._handleFieldChangeFrom, this, true);
-         Event.addListener(this.id + "-icon-from", "click", this._showPickerFrom, this, true);
-         this.widgets.calendarTo.selectEvent.subscribe(this._handlePickerChangeTo, this, true);
-         Event.addListener(this.id + "-date-to", "keyup", this._handleFieldChangeTo, this, true);
-         Event.addListener(this.id + "-icon-to", "click", this._showPickerTo, this, true);
-         
-         // render the calendar controls
-         this.widgets.calendarFrom.render();
-         this.widgets.calendarTo.render();
+          // render the calendar controls
+          this.widgets.calendarFrom.render();
+          this.widgets.calendarTo.render();
+
+          // setup events
+          this.widgets.calendarFrom.selectEvent.subscribe(this._handlePickerChangeFrom, this, true);
+          Event.addListener(this.id + "-date-from", "keyup", this._handleFieldChangeFrom, this, true);
+          Event.addListener(this.id + "-icon-from", "click", this._showPickerFrom, this, true);
+          this.widgets.calendarTo.selectEvent.subscribe(this._handlePickerChangeTo, this, true);
+          Event.addListener(this.id + "-date-to", "keyup", this._handleFieldChangeTo, this, true);
+          Event.addListener(this.id + "-icon-to", "click", this._showPickerTo, this, true);
       },
       
       /**
