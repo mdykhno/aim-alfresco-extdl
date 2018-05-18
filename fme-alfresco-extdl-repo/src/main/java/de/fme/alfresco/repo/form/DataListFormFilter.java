@@ -73,12 +73,12 @@ public class DataListFormFilter<ItemType, PersistType> extends AbstractFilter<It
                 {
         			if (shouldAddDiscussable) {
 	                    final FieldDefinition discussableFieldDef = getDiscussableFieldDef();
-	                    
+
 	                    //form.addFieldDefinition(discussableFieldDef);
 	                    fieldDefs.add(discussableFieldDef);
 	                    addedDiscussable = true;
         			}
-                    
+
                 } else if (ACTIONS_FIELDNAME.equals(fieldName)) {
                     //form.addFieldDefinition(discussableFieldDef);
                     final FieldDefinition actionsFieldDef = new PropertyFieldDefinition(ACTIONS_FIELDNAME, "actions");
@@ -116,7 +116,6 @@ public class DataListFormFilter<ItemType, PersistType> extends AbstractFilter<It
 	private FieldDefinition getDiscussableFieldDef() {
 		final FieldDefinition discussableFieldDef = new PropertyFieldDefinition(DISCUSSABLE_FIELDNAME, "discussion");//was fm_dis....
 		discussableFieldDef.setDataKeyName(DISCUSSABLE_FORMPROPNAME);
-		discussableFieldDef.setProtectedField(true);
 		discussableFieldDef.setLabel(properties.getProperty(COMMENTS_LABEL, "Comments")); //was hard-coded
 		if (LOGGER.isDebugEnabled()) LOGGER.debug("... generating field definition " + discussableFieldDef);
 		return discussableFieldDef;
@@ -135,7 +134,7 @@ public class DataListFormFilter<ItemType, PersistType> extends AbstractFilter<It
         
         Set<String> fieldNames = data.getFieldNames();
         for (String fieldName : fieldNames) {
-            if (fieldName.equalsIgnoreCase("DISCUSSABLE_FIELDNAME")){
+            if (fieldName.equalsIgnoreCase(DISCUSSABLE_FORMPROPNAME)){
                 FieldData newCommentData = data.getFieldData(fieldName);
                 String comment = newCommentData.getValue().toString();
                 if (StringUtils.isNotEmpty( comment)){
@@ -195,12 +194,12 @@ public class DataListFormFilter<ItemType, PersistType> extends AbstractFilter<It
     public void setNodeService(NodeService nodeService) {
         this.nodeService = nodeService;
     }
-    
+
     public void setBehaviourFilter(BehaviourFilter behaviourFilter)
     {
         this.behaviourFilter = behaviourFilter;
     }
-    
+
     /**
      * @param contentService the contentService to set
      */
@@ -232,10 +231,10 @@ public class DataListFormFilter<ItemType, PersistType> extends AbstractFilter<It
         }
         return commentsFolder;
     }
-    
+
     private NodeRef getCommentsFolder(NodeRef nodeRef) {
         NodeRef commentsFolder = null;
-        
+
         Set<QName> types = new HashSet<QName>(1, 1.0f);
         types.add(ForumModel.TYPE_FORUM);
         List<ChildAssociationRef> childAssocs = nodeService.getChildAssocs(nodeRef, types);
@@ -245,14 +244,14 @@ public class DataListFormFilter<ItemType, PersistType> extends AbstractFilter<It
         }
         return commentsFolder;
     }
-    
+
     private NodeRef createCommentsFolder(NodeRef nodeRef){
         NodeRef commentsFolder = null;
-        
+
         // ALF-5240: turn off auditing round the discussion node creation to prevent
         // the source document from being modified by the first user leaving a comment
         behaviourFilter.disableBehaviour(nodeRef, ContentModel.ASPECT_AUDITABLE);
-        
+
         try
         {
             nodeService.addAspect(nodeRef, QName.createQName(NamespaceService.FORUMS_MODEL_1_0_URI, "discussable"), null);
@@ -260,13 +259,13 @@ public class DataListFormFilter<ItemType, PersistType> extends AbstractFilter<It
             if (assocs.size() != 0)
             {
                 NodeRef forumFolder = assocs.get(0).getChildRef();
-                
+
                 Map<QName, Serializable> props = new HashMap<QName, Serializable>(1);
                 props.put(ContentModel.PROP_NAME, COMMENTS_TOPIC_NAME);
                 commentsFolder = nodeService.createNode(
                         forumFolder,
-                        ContentModel.ASSOC_CONTAINS, 
-                        QName.createQName(NamespaceService.CONTENT_MODEL_1_0_URI, COMMENTS_TOPIC_NAME), 
+                        ContentModel.ASSOC_CONTAINS,
+                        QName.createQName(NamespaceService.CONTENT_MODEL_1_0_URI, COMMENTS_TOPIC_NAME),
                         QName.createQName(NamespaceService.FORUMS_MODEL_1_0_URI, "topic"),
                         props).getChildRef();
             }
