@@ -2,7 +2,7 @@
 <!DOCTYPE beans PUBLIC '-//SPRING//DTD BEAN//EN' 'http://www.springframework.org/dtd/spring-beans.dtd'>
 <beans>
  
-  <bean id="extension.dictionaryBootstrap" parent="dictionaryModelBootstrap" depends-on="dictionaryBootstrap">
+  <bean id="extension.dictionaryBootstrap" parent="dictionaryModelBootstrap" depends-on="datalistModelBootstrap">
 	<property name="models">
 		<list>
 			<value>alfresco/extension/fme/fmeDatalistModel.xml</value>
@@ -39,6 +39,7 @@
              <value>dl:event</value>
              <value>dl:location</value>
              <value>dl:meetingAgenda</value>
+             <value>tp:Protocol</value>
          </set>
      </property>
   </bean>
@@ -97,6 +98,9 @@
               <entry key="dl:eventAgenda"> 
                 <value>dl:itemId,dl:eventAgendaRef,dl:eventAgendaStartTime,dl:eventAgendaEndTime,dl:eventAgendaSessionName,dl:eventAgendaPresenter,dl:eventAgendaAudience,cm:attachments,dl:eventAgendaNotes,fm:forum</value> 
               </entry>
+               <entry key="tp:Protocol">
+                   <value>tp:tpID,tp:tpSite,tp:tpDate,tp:tpInOut,tp:tpType,tp:tpSender,tp:tpReceiver,tp:tpComments,tp:tpOrginalCopy,tp:tpCanceled,tp:tpAttachments</value>
+               </entry>
            </map>
         </property>
         <property name="messageLookup">
